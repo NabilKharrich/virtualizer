@@ -5,7 +5,7 @@ module.exports = defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/index.js"),
-      name: "virtualizer",
+      name: "Virtualizer",
       fileName: (format) => `virtualizer.${format}.js`,
     },
     rollupOptions: {},
