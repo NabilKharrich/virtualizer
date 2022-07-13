@@ -1,8 +1,18 @@
 {
-  "name": "virtualizer",
-  "private": true,
+  "name": "@nabilk/virtualizer",
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/virtualizer.umd.js",
+  "module": "./dist/virtualizer.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/virtualizer.es.js",
+      "require": "./dist/virtualizer.umd.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
