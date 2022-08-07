@@ -6,6 +6,7 @@ function lerp(start: number, end: number, amt: number) {
 }
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+const container = <HTMLElement>document.querySelector(".container");
 
 enable({});
 
@@ -38,6 +39,10 @@ handle("pointerup", (e) => {
 });
 
 handle("pointermove", (e) => {
+  console.log(e.pointerX);
+});
+
+handle("drag", (e) => {
   state.target = state.last - e.dragY;
   state.target = clamp(state.target, 0, state.total);
   if (!state.running) a();

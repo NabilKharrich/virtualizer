@@ -5,6 +5,7 @@ interface VirtualizerConfig {
   wheelMultiplier: number;
   touchMultiplier: number;
   dragMultiplier: number;
+  trackPointer: boolean;
   enableWheel: boolean;
   enableTouch: boolean;
   enableDrag: boolean;
@@ -33,7 +34,7 @@ interface VirtualizerPointerDownEventMap {
   event: PointerEvent;
 }
 
-interface VirtualizerPointerMoveEventMap {
+interface VirtualizerDragEventMap {
   dragX: number;
   dragY: number;
   type: string;
@@ -53,11 +54,18 @@ interface VirtualizerKeydownEventMap {
   event: KeyboardEvent;
 }
 
+interface VirtualizerPointerMoveEventMap {
+  pointerX: number;
+  pointerY: number;
+  event: PointerEvent;
+}
+
 interface VirtualizerEventMap {
   wheel: (ev: VirtualizerWheelEventMap) => void;
   pointerdown: (ev: VirtualizerPointerDownEventMap) => void;
   pointermove: (ev: VirtualizerPointerMoveEventMap) => void;
   pointerup: (ev: VirtualizerPointerUpEventMap) => void;
+  drag: (ev: VirtualizerDragEventMap) => void;
   keydown: (ev: VirtualizerKeydownEventMap) => void;
 }
 
@@ -67,6 +75,7 @@ type VirtualizerInternalEvents = {
     | "pointerdown"
     | "pointermove"
     | "pointerup"
+    | "drag"
     | "keydown"]: string;
 };
 
@@ -96,6 +105,7 @@ const EVENTS: VirtualizerInternalEvents = {
   pointerdown: "virtualizer:pointerdown",
   pointermove: "virtualizer:pointermove",
   pointerup: "virtualizer:pointerup",
+  drag: "virtualizer:drag",
   keydown: "virtualizer:keydown",
 };
 
@@ -103,6 +113,7 @@ const defaultConfig: VirtualizerConfig = {
   wheelMultiplier: 1,
   touchMultiplier: 1,
   dragMultiplier: 1,
+  trackPointer: true,
   enableWheel: true,
   enableTouch: true,
   enableDrag: true,
@@ -157,6 +168,14 @@ const handlePointerMove = (event: PointerEvent) => {
   const { clientX, clientY, buttons, pointerType } = event;
   const { enableDrag, enableTouch } = setup.config;
 
+  if (setup.config.trackPointer && pointerType === "mouse") {
+    emit(EVENTS.pointermove, <VirtualizerPointerMoveEventMap>{
+      pointerX: clientX || 0,
+      pointerY: clientY || 0,
+      event,
+    });
+  }
+
   const disabledGesture =
     (!enableDrag && pointerType === "mouse") ||
     (!enableTouch && pointerType === "touch");
@@ -172,7 +191,7 @@ const handlePointerMove = (event: PointerEvent) => {
       ? setup.config.touchMultiplier
       : 1;
 
-  emit(EVENTS.pointermove, <VirtualizerPointerMoveEventMap>{
+  emit(EVENTS.drag, <VirtualizerDragEventMap>{
     dragX: ((clientX || 0) - pointer.x) * multiplier,
     dragY: ((clientY || 0) - pointer.y) * multiplier,
     type: pointerType,
