@@ -7,7 +7,7 @@ function lerp(start: number, end: number, amt: number) {
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
-enable({ wheelMultiplier: 1, dragMultiplier: 2, touchMultiplier: 2 });
+enable({});
 
 on("wheel", (e) => console.log(e));
 on("pointerdown", ({ event: { button } }) => console.log(button));
@@ -21,6 +21,7 @@ const state = {
   last: 0,
   running: false,
 };
+
 const app = <HTMLElement>document.querySelector("#app");
 const line = <HTMLElement>document.querySelector(".line");
 state.total = app.scrollHeight - window.innerHeight;
@@ -50,12 +51,31 @@ handle("wheel", (e) => {
 });
 
 handle("keydown", (e) => {
-  const { code, value } = e;
+  const { code, shift, value } = e;
+  console.log(code, shift);
 
-  state.target += value;
-  state.target = clamp(state.target, 0, state.total);
+  if (code !== "Tab") {
+    state.target += value;
+    state.target = clamp(state.target, 0, state.total);
 
-  if (!state.running) a();
+    if (!state.running) a();
+  } else {
+    requestAnimationFrame(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      document.documentElement.scrollLeft = 0;
+      document.body.scrollLeft = 0;
+
+      setTimeout(() => {
+        state.target +=
+          (document.activeElement?.getBoundingClientRect().top || 0) -
+          window.innerHeight / 2;
+        state.target = clamp(state.target, 0, state.total);
+
+        if (!state.running) a();
+      }, 0);
+    });
+  }
 });
 
 function a() {

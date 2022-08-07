@@ -1,12 +1,6 @@
 import { emit, off as _off, on as _on } from "@nabilk/bigbro";
 import normalizeWheel from "normalize-wheel";
 
-/**
- * TODO
- * [] add multipliers
- * [] add keyboard support
- */
-
 interface VirtualizerConfig {
   wheelMultiplier: number;
   touchMultiplier: number;
@@ -81,6 +75,22 @@ type VirtualizerEventHandler = <T extends keyof VirtualizerEventMap>(
   cb: VirtualizerEventMap[T]
 ) => void;
 
+type AllowedKeyCodes =
+  | "Tab"
+  | "ArrowDown"
+  | "ArrowRight"
+  | "ArrowUp"
+  | "ArrowLeft"
+  | "Space"
+  | "PageDown"
+  | "PageUp";
+
+type AllowedKey = typeof allowedKeyCodes[number];
+
+type KeyCodes = {
+  [key in AllowedKeyCodes]: () => number;
+};
+
 const EVENTS: VirtualizerInternalEvents = {
   wheel: "virtualizer:wheel",
   pointerdown: "virtualizer:pointerdown",
@@ -98,7 +108,7 @@ const defaultConfig: VirtualizerConfig = {
   enableDrag: true,
   enableKeyboard: true,
   spaceStep: "window",
-  arrowStep: 120,
+  arrowStep: 40,
 };
 
 const setup: VirtualizerSetup = {
@@ -191,24 +201,44 @@ const handlePointerUp = (event: PointerEvent) => {
   });
 };
 
-const keyCodes = new Map<string, () => number>([
-  ["ArrowDown", () => 40],
-  ["ArrowRight", () => 40],
-  ["ArrowUp", () => -40],
-  ["ArrowLeft", () => -40],
-  ["Space", () => window.innerHeight],
-  ["PageDown", () => window.innerHeight],
-  ["PageUp", () => -window.innerHeight],
-]);
+const keyCodes: KeyCodes = {
+  Tab: () => 0,
+  ArrowDown: () => setup.config.arrowStep,
+  ArrowRight: () => setup.config.arrowStep,
+  ArrowUp: () => -setup.config.arrowStep,
+  ArrowLeft: () => -setup.config.arrowStep,
+  Space: () => window.innerHeight,
+  PageDown: () => window.innerHeight,
+  PageUp: () => -window.innerHeight,
+};
+
+const allowedKeyCodes: AllowedKeyCodes[] = [
+  "Tab",
+  "ArrowDown",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowLeft",
+  "Space",
+  "PageDown",
+  "PageUp",
+];
+
+const isAllowedKeyCode = (code: string): code is AllowedKey => {
+  return (
+    typeof code === "string" && allowedKeyCodes.includes(code as AllowedKey)
+  );
+};
 
 const handleKeyDown = (event: KeyboardEvent) => {
   const { code, shiftKey } = event;
 
-  if (keyCodes.has(code)) {
-    const value: number =
-      code === "Space"
-        ? keyCodes.get(code)?.() || 0 * (shiftKey ? -1 : 1)
-        : keyCodes.get(code)?.() || 0;
+  if (isAllowedKeyCode(code)) {
+    const value =
+      code === "Tab"
+        ? 0
+        : code === "Space"
+        ? keyCodes[code]() * (shiftKey ? -1 : 1)
+        : keyCodes[code]();
 
     emit(EVENTS.keydown, <VirtualizerKeydownEventMap>{
       code: code,
