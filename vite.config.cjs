@@ -16,8 +16,8 @@ module.exports = defineConfig({
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
-          "normalize-wheel": "normalize-wheel",
-          "@nabilk/bigbro": "Bigbro",
+          nw: "normalize-wheel",
+          bigbro: "Bigbro",
         },
       },
     },

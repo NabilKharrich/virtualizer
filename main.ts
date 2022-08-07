@@ -1,24 +1,75 @@
 import { on } from "@nabilk/bigbro";
-import * as Virtualizer from "./src";
+import { detatch, enable, handle } from "./src";
 
-const v = Virtualizer.enable({});
+function lerp(start: number, end: number, amt: number) {
+  return (1 - amt) * start + amt * end;
+}
+
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
+enable({ wheelMultiplier: 1, dragMultiplier: 2, touchMultiplier: 2 });
 
 on("wheel", (e) => console.log(e));
 on("pointerdown", ({ event: { button } }) => console.log(button));
 on("pointermove", ({ event: { button } }) => console.log(button));
 const btn = document.querySelector("button");
 
-btn && on("click", btn, () => Virtualizer.disable());
+const state = {
+  total: 0,
+  current: 0,
+  target: 0,
+  last: 0,
+  running: false,
+};
+const app = <HTMLElement>document.querySelector("#app");
+const line = <HTMLElement>document.querySelector(".line");
+state.total = app.scrollHeight - window.innerHeight;
 
-Virtualizer.handle("wheel", (e) => {
-  console.log(e.pixelY, e.spinY);
+handle("pointerdown", (e) => {
+  console.log("p");
+
+  state.last = state.target;
+  console.log(state.last);
 });
-Virtualizer.handle("pointerdown", (e) => {
-  console.log("down");
+
+handle("pointerup", (e) => {
+  state.last = state.target;
 });
-Virtualizer.handle("pointermove", (e) => {
-  console.log("moving");
+
+handle("pointermove", (e) => {
+  state.target = state.last - e.dragY;
+  state.target = clamp(state.target, 0, state.total);
+  if (!state.running) a();
 });
-Virtualizer.handle("pointerup", (e) => {
-  console.log("up");
+
+handle("wheel", (e) => {
+  state.target += e.pixelY;
+  state.target = clamp(state.target, 0, state.total);
+
+  if (!state.running) a();
 });
+
+handle("keydown", (e) => {
+  const { code, value } = e;
+
+  state.target += value;
+  state.target = clamp(state.target, 0, state.total);
+
+  if (!state.running) a();
+});
+
+function a() {
+  state.running = true;
+  state.current = lerp(state.current, state.target, 0.08);
+
+  app.style.transform = `translateY(${-state.current}px) translateZ(0)`;
+  line.style.transform = `scaleY(${state.current / state.total})`;
+
+  if (Math.abs(state.target - state.current) > 0.04) {
+    requestAnimationFrame(a);
+  } else {
+    state.running = false;
+  }
+}
+
+a();
