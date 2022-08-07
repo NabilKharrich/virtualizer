@@ -2,13 +2,11 @@ import { emit, off as _off, on as _on } from "@nabilk/bigbro";
 import normalizeWheel from "normalize-wheel";
 
 interface VirtualizerConfig {
-  wheelMultiplier: number;
-  touchMultiplier: number;
-  dragMultiplier: number;
   trackPointer: boolean;
   enableWheel: boolean;
   enableTouch: boolean;
   enableDrag: boolean;
+  enableNavigation: boolean;
   enableKeyboard: boolean;
   spaceStep: number | string;
   arrowStep: number;
@@ -118,13 +116,11 @@ const EVENTS: VirtualizerInternalEvents = {
 };
 
 const defaultConfig: VirtualizerConfig = {
-  wheelMultiplier: 1,
-  touchMultiplier: 1,
-  dragMultiplier: 1,
   trackPointer: true,
   enableWheel: true,
   enableTouch: true,
   enableDrag: true,
+  enableNavigation: true,
   enableKeyboard: true,
   spaceStep: "window",
   arrowStep: 40,
@@ -142,8 +138,6 @@ const pointer = {
 
 const handleWheel = (event: WheelEvent) => {
   const normalized = normalizeWheel(event);
-  normalized.pixelX *= setup.config.wheelMultiplier;
-  normalized.pixelY *= setup.config.wheelMultiplier;
 
   emit(EVENTS.wheel, <VirtualizerWheelEventMap>{
     ...normalized,
@@ -192,16 +186,9 @@ const handlePointerMove = (event: PointerEvent) => {
 
   event.preventDefault();
 
-  const multiplier =
-    pointerType === "mouse"
-      ? setup.config.dragMultiplier
-      : pointerType === "touch"
-      ? setup.config.touchMultiplier
-      : 1;
-
   emit(EVENTS.drag, <VirtualizerDragEventMap>{
-    dragX: ((clientX || 0) - pointer.x) * multiplier,
-    dragY: ((clientY || 0) - pointer.y) * multiplier,
+    dragX: (clientX || 0) - pointer.x,
+    dragY: (clientY || 0) - pointer.y,
     type: pointerType,
     event,
   });
@@ -259,7 +246,7 @@ const isAllowedKeyCode = (code: string): code is AllowedKey => {
 const handleKeyDown = (event: KeyboardEvent) => {
   const { code, shiftKey } = event;
 
-  if (isAllowedKeyCode(code)) {
+  if (setup.config.enableNavigation && isAllowedKeyCode(code)) {
     const value =
       code === "Tab"
         ? 0
@@ -273,7 +260,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
       value,
       event,
     });
-  } else {
+  }
+
+  if (setup.config.enableKeyboard) {
     emit(EVENTS.keydown, <VirtualizerKeydownEventMap>{
       code: code,
       shift: shiftKey,

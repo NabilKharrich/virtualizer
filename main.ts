@@ -8,7 +8,7 @@ function lerp(start: number, end: number, amt: number) {
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const container = <HTMLElement>document.querySelector(".container");
 
-enable({});
+enable({ enableNavigation: true });
 
 on("wheel", (e) => console.log(e));
 on("pointerdown", ({ event: { button } }) => console.log(button));
@@ -54,10 +54,11 @@ handle("wheel", (e) => {
 
   if (!state.running) a();
 });
-
+handle("keydown", (e) => {
+  console.log(e.code);
+});
 handle("navigation", (e) => {
   const { code, shift, value } = e;
-  console.log(code, shift);
 
   if (code !== "Tab") {
     state.target += value;
