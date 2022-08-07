@@ -55,7 +55,7 @@ handle("wheel", (e) => {
   if (!state.running) a();
 });
 
-handle("keydown", (e) => {
+handle("navigation", (e) => {
   const { code, shift, value } = e;
   console.log(code, shift);
 

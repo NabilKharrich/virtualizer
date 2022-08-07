@@ -47,10 +47,15 @@ interface VirtualizerPointerUpEventMap {
   event: PointerEvent;
 }
 
-interface VirtualizerKeydownEventMap {
+interface VirtualizerNavigationEventMap {
   code: string;
   shift: boolean;
   value: number;
+  event: KeyboardEvent;
+}
+interface VirtualizerKeydownEventMap {
+  code: string;
+  shift: boolean;
   event: KeyboardEvent;
 }
 
@@ -66,6 +71,7 @@ interface VirtualizerEventMap {
   pointermove: (ev: VirtualizerPointerMoveEventMap) => void;
   pointerup: (ev: VirtualizerPointerUpEventMap) => void;
   drag: (ev: VirtualizerDragEventMap) => void;
+  navigation: (ev: VirtualizerNavigationEventMap) => void;
   keydown: (ev: VirtualizerKeydownEventMap) => void;
 }
 
@@ -76,7 +82,8 @@ type VirtualizerInternalEvents = {
     | "pointermove"
     | "pointerup"
     | "drag"
-    | "keydown"]: string;
+    | "keydown"
+    | "navigation"]: string;
 };
 
 type VirtualizerEventHandler = <T extends keyof VirtualizerEventMap>(
@@ -107,6 +114,7 @@ const EVENTS: VirtualizerInternalEvents = {
   pointerup: "virtualizer:pointerup",
   drag: "virtualizer:drag",
   keydown: "virtualizer:keydown",
+  navigation: "virtualizer:navigation",
 };
 
 const defaultConfig: VirtualizerConfig = {
@@ -259,10 +267,16 @@ const handleKeyDown = (event: KeyboardEvent) => {
         ? keyCodes[code]() * (shiftKey ? -1 : 1)
         : keyCodes[code]();
 
-    emit(EVENTS.keydown, <VirtualizerKeydownEventMap>{
+    emit(EVENTS.navigation, <VirtualizerNavigationEventMap>{
       code: code,
       shift: shiftKey,
       value,
+      event,
+    });
+  } else {
+    emit(EVENTS.keydown, <VirtualizerKeydownEventMap>{
+      code: code,
+      shift: shiftKey,
       event,
     });
   }
