@@ -10,11 +10,6 @@ const container = <HTMLElement>document.querySelector(".container");
 
 enable({ enableNavigation: true });
 
-on("wheel", (e) => console.log(e));
-on("pointerdown", ({ event: { button } }) => console.log(button));
-on("pointermove", ({ event: { button } }) => console.log(button));
-const btn = document.querySelector("button");
-
 const state = {
   total: 0,
   current: 0,
@@ -28,18 +23,18 @@ const line = <HTMLElement>document.querySelector(".line");
 state.total = app.scrollHeight - window.innerHeight;
 
 handle("pointerdown", (e) => {
-  console.log("p");
+  console.log(`${e.type} is down`);
 
   state.last = state.target;
-  console.log(state.last);
 });
 
 handle("pointerup", (e) => {
+  console.log(`${e.type} is up`);
   state.last = state.target;
 });
 
 handle("pointermove", (e) => {
-  console.log(e.pointerX);
+  console.log(`mouse is moving`);
 });
 
 handle("drag", (e) => {
@@ -55,7 +50,7 @@ handle("wheel", (e) => {
   if (!state.running) a();
 });
 handle("keydown", (e) => {
-  console.log(e.code);
+  console.log("keydown");
 });
 handle("navigation", (e) => {
   const { code, shift, value } = e;
